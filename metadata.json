@@ -1,0 +1,5 @@
+{
+  "name": "Morning Brief AI",
+  "description": "An automated daily news aggregator that uses Google Gemini to search, filter, and summarize important news based on your specific interests.",
+  "requestFramePermissions": []
+}
