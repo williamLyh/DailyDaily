@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AppSettings } from '../types';
-import { AVAILABLE_TOPICS, AVAILABLE_MODELS } from '../constants';
+import { AVAILABLE_TOPICS, AVAILABLE_MODELS, AVAILABLE_LANGUAGES, SUMMARY_LENGTH_OPTIONS, SUGGESTED_DOMAINS } from '../constants';
 
 interface SettingsPanelProps {
   settings: AppSettings;
@@ -12,6 +12,7 @@ interface SettingsPanelProps {
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSave, isOpen, onClose }) => {
   const [localSettings, setLocalSettings] = useState<AppSettings>(settings);
   const [newTopic, setNewTopic] = useState("");
+  const [newDomain, setNewDomain] = useState("");
 
   // Sync when panel opens
   useEffect(() => {
@@ -36,6 +37,18 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSave, 
       setLocalSettings(prev => ({ ...prev, topics: [...prev.topics, newTopic.trim()] }));
       setNewTopic("");
     }
+  };
+
+  const handleAddDomain = (domainOverride?: string) => {
+    const domainToAdd = domainOverride || newDomain;
+    if (domainToAdd.trim() && !localSettings.preferredDomains.includes(domainToAdd.trim())) {
+      setLocalSettings(prev => ({ ...prev, preferredDomains: [...prev.preferredDomains, domainToAdd.trim()] }));
+      if (!domainOverride) setNewDomain("");
+    }
+  };
+
+  const removeDomain = (domain: string) => {
+    setLocalSettings(prev => ({ ...prev, preferredDomains: prev.preferredDomains.filter(d => d !== domain) }));
   };
 
   const handleSave = () => {
@@ -90,7 +103,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSave, 
                 onChange={(e) => setLocalSettings({ ...localSettings, scheduledTime: e.target.value })}
                 className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none"
               />
-              <p className="text-xs text-slate-500 mt-1">App must be open to run.</p>
             </div>
 
             {/* Model */}
@@ -108,16 +120,110 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ settings, onSave, 
                 ))}
               </select>
             </div>
+
+            {/* Language */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Language
+              </label>
+              <select
+                value={localSettings.language}
+                onChange={(e) => setLocalSettings({ ...localSettings, language: e.target.value })}
+                className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+              >
+                {AVAILABLE_LANGUAGES.map(lang => (
+                  <option key={lang} value={lang}>{lang}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Length */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Summary Length
+              </label>
+              <select
+                value={localSettings.summaryLength}
+                onChange={(e) => setLocalSettings({ ...localSettings, summaryLength: e.target.value as any })}
+                className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+              >
+                {SUMMARY_LENGTH_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Preferred Sources */}
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <label className="block text-sm font-semibold text-slate-700 mb-3">
+              Search Sources
+            </label>
+            
+            {/* Active List */}
+            <div className="mb-4 bg-white p-3 rounded-lg border border-slate-200 min-h-[50px]">
+              {localSettings.preferredDomains.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                   {localSettings.preferredDomains.map(domain => (
+                     <span key={domain} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-md text-sm font-medium">
+                        {domain}
+                        <button onClick={() => removeDomain(domain)} className="text-blue-400 hover:text-red-500 transition-colors">
+                          <i className="fa-solid fa-times text-xs"></i>
+                        </button>
+                     </span>
+                   ))}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-full text-sm text-slate-400 italic gap-2 py-1">
+                  <i className="fa-solid fa-earth-americas"></i>
+                  Model will search all reliable global sources
+                </div>
+              )}
+            </div>
+
+            {/* Input */}
+            <div className="flex gap-2 mb-4">
+              <input
+                type="text"
+                value={newDomain}
+                onChange={(e) => setNewDomain(e.target.value)}
+                placeholder="Add specific website (e.g., bbc.com)"
+                className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none"
+                onKeyDown={(e) => e.key === 'Enter' && handleAddDomain()}
+              />
+              <button
+                onClick={() => handleAddDomain()}
+                className="px-4 py-2 bg-slate-800 text-white text-sm rounded-lg hover:bg-slate-900 transition-colors"
+              >
+                Add
+              </button>
+            </div>
+
+            {/* Quick Add */}
+            <div>
+               <p className="text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">Suggested</p>
+               <div className="flex flex-wrap gap-2">
+                 {SUGGESTED_DOMAINS.filter(d => !localSettings.preferredDomains.includes(d)).map(d => (
+                   <button 
+                     key={d} 
+                     onClick={() => handleAddDomain(d)}
+                     className="text-xs px-2 py-1 bg-white hover:bg-slate-100 text-slate-600 rounded border border-slate-300 transition-colors"
+                   >
+                     + {d}
+                   </button>
+                 ))}
+               </div>
+            </div>
           </div>
 
            {/* Auto Download */}
-           <div className="flex items-center gap-3">
+           <div className="flex items-center gap-3 pl-1">
               <input 
                 type="checkbox" 
                 id="autoDownload"
                 checked={localSettings.autoDownload}
                 onChange={(e) => setLocalSettings({...localSettings, autoDownload: e.target.checked})}
-                className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
               />
               <label htmlFor="autoDownload" className="text-sm font-medium text-slate-700 select-none">
                 Automatically download summary file when generated

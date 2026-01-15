@@ -4,11 +4,20 @@ export interface AppSettings {
   scheduledTime: string; // Format "HH:mm" 24h
   topics: string[];
   autoDownload: boolean;
+  preferredDomains: string[];
+  summaryLength: 'short' | 'medium' | 'long';
+  language: string;
 }
 
 export interface SummarySource {
   title: string;
   uri: string;
+}
+
+export interface TokenUsage {
+  promptTokens: number;
+  outputTokens: number;
+  totalTokens: number;
 }
 
 export interface DailySummary {
@@ -17,6 +26,8 @@ export interface DailySummary {
   content: string; // Markdown content
   sources: SummarySource[];
   timestamp: number;
+  usage?: TokenUsage;
+  estimatedCost?: number;
 }
 
 export enum AppStatus {

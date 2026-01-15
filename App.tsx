@@ -60,11 +60,7 @@ const App: React.FC = () => {
     addLog("Starting daily search cycle...", "info");
 
     try {
-      const result = await generateDailyBriefing(
-        currentSettings.apiKey,
-        currentSettings.model,
-        currentSettings.topics
-      );
+      const result = await generateDailyBriefing(currentSettings);
 
       setStatus(AppStatus.SUMMARIZING); // Transition state logically, though 'generate' does both
       
@@ -73,7 +69,9 @@ const App: React.FC = () => {
         date: new Date().toLocaleDateString(),
         content: result.content,
         sources: result.sources,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        usage: result.usage,
+        estimatedCost: result.estimatedCost
       };
 
       // Save logic
